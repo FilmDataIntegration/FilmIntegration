@@ -20,8 +20,8 @@ public class AnalysisDaoImpl extends BaseDaoImpl implements AnalysisDao {
 		JSONArray result = new JSONArray();
 		Session session = this.getCurrentSession();
 		String sql = "SELECT * "
-				   + "FROM (((SELECT film_id, theatre_id, video_hall_id, time, platform_id, price FROM show_infos WHERE film_id = " + film_id + " AND theatre_id = " + theater_id + " AND DATE_FORMAT(time,'%Y-%m-%d') = '" + date + "') AS t1 INNER JOIN platforms ON t1.platform_id = platforms.id) INNER JOIN films ON t1.film_id = films.id) INNER JOIN video_halls ON t1.video_hall_id = video_halls.id "
-				   + "ORDER BY t1.theatre_id, t1.time";
+				   + "FROM ((SELECT film_id, theatre_id, video_hall, time, platform_id, price FROM show_infos WHERE film_id = " + film_id + " AND theatre_id = " + theater_id + " AND DATE_FORMAT(time,'%Y-%m-%d') = '" + date + "') AS t1 INNER JOIN platforms ON t1.platform_id = platforms.id) INNER JOIN films ON t1.film_id = films.id "
+				   + "ORDER BY t1.time";
 		
 		@SuppressWarnings("rawtypes")
 		List list = session.createNativeQuery(sql).list();
@@ -32,13 +32,12 @@ public class AnalysisDaoImpl extends BaseDaoImpl implements AnalysisDao {
 			Object[] os = (Object[]) list.get(i);
 			obj.put("film_id", ((BigInteger) os[0]).intValue());
 			obj.put("theater_id", ((BigInteger) os[1]).intValue());
-			obj.put("hall_id", ((BigInteger) os[2]).intValue());
+			obj.put("hall", os[2]);
 			obj.put("time", dateFormat.format(((Date)os[3])));
 			obj.put("platform_id", ((BigInteger) os[4]).intValue());
 			obj.put("price", os[5]);
 			obj.put("platform_name", os[7]);
 			obj.put("film_name", os[9]);
-			obj.put("theater_name", os[18]);
 			result.add(obj);
 		}
 		return result;
