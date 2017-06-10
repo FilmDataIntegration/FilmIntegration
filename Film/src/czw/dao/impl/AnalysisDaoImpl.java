@@ -30,11 +30,11 @@ public class AnalysisDaoImpl extends BaseDaoImpl implements AnalysisDao {
 		for (int i = 0; i < list.size(); i++) {
 			JSONObject obj = new JSONObject();
 			Object[] os = (Object[]) list.get(i);
-			obj.put("film_id", ((BigInteger) os[0]).intValue());
-			obj.put("theater_id", ((BigInteger) os[1]).intValue());
+			obj.put("film_id", os[0]);
+			obj.put("theater_id", os[1]);
 			obj.put("hall", os[2]);
 			obj.put("time", dateFormat.format(((Date)os[3])));
-			obj.put("platform_id", ((BigInteger) os[4]).intValue());
+			obj.put("platform_id", os[4]);
 			obj.put("price", os[5]);
 			obj.put("platform_name", os[7]);
 			obj.put("film_name", os[9]);
@@ -56,12 +56,12 @@ public class AnalysisDaoImpl extends BaseDaoImpl implements AnalysisDao {
 		for (int i = 0; i < list.size(); i++) {
 			JSONObject obj = new JSONObject();
 			Object[] os = (Object[]) list.get(i);
-			obj.put("film_id", ((BigInteger) os[0]).intValue());
+			obj.put("film_id", os[0]);
 			obj.put("film_name", os[1]);
 			obj.put("description", os[2]);
 			obj.put("score", os[3]);
 			obj.put("type", os[4]);
-			obj.put("platform_id", ((BigInteger) os[5]).intValue());
+			obj.put("platform_id", os[5]);
 			obj.put("platform_name", os[6]);
 			result.add(obj);
 		}
@@ -79,13 +79,13 @@ public class AnalysisDaoImpl extends BaseDaoImpl implements AnalysisDao {
 		for (int i = 0; i < list.size(); i++) {
 			JSONObject obj = new JSONObject();
 			Object[] os = (Object[]) list.get(i);
-			obj.put("id", ((BigInteger) os[0]).intValue());
+			obj.put("id", os[0]);
 			obj.put("name", os[1]);
 			obj.put("first_run", ((Date)os[2]).toString());
 			obj.put("language", os[3]);
-			obj.put("d", ((BigInteger) os[4]).intValue());
+			obj.put("d", os[4]);
 			obj.put("area", os[5]);
-			obj.put("length", ((BigInteger) os[6]).intValue());
+			obj.put("length", os[6]);
 			obj.put("director", os[7]);
 			obj.put("main_characters", os[8]);
 
@@ -107,11 +107,11 @@ public class AnalysisDaoImpl extends BaseDaoImpl implements AnalysisDao {
 		for (int i = 0; i < list.size(); i++) {
 			JSONObject obj = new JSONObject();
 			Object[] os = (Object[]) list.get(i);
-			obj.put("id", ((BigInteger) os[0]).intValue());
+			obj.put("id", os[0]);
 			obj.put("name", os[1]);
 			obj.put("phone", os[2]);
 			obj.put("address", os[3]);
-			obj.put("num", ((BigInteger) os[4]).intValue());
+			obj.put("num", os[4]);
 
 			result.add(obj);
 		}
