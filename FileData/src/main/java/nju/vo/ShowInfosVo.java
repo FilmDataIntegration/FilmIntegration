@@ -1,5 +1,6 @@
 package nju.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import nju.entity.ShowInfosEntity;
 import org.springframework.beans.BeanUtils;
 
@@ -12,6 +13,7 @@ import java.sql.Timestamp;
 public class ShowInfosVo {
     private int id;
     private String videoHall;
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm")
     private Timestamp time;
     private Double price;
     private Integer seatsLeft;
