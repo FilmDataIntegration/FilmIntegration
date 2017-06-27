@@ -7,7 +7,26 @@ public class Processor implements Serializable{
 
 	private PreProcessor processor;
 	
-    private BP bp = new BP(new int[]{7,6,2,1}, 0.15, 0.8);
+    private BP bp;
+    
+    public Processor(){
+    	this(new int[]{6, 2}, 0.15, 0.8);
+    }
+    
+    /**
+     * @param hidden_layer 神经网络中间层节点数，可以有多层
+     * @param mobp 动量系数
+     * @param rate 学习系数
+     */
+    public Processor(int[] hidden_layer, double mobp, double rate){
+    	int[] tmp = new int[hidden_layer.length + 2];
+    	tmp[0] = 7;
+    	for (int i = 0; i < hidden_layer.length; i++) {
+			tmp[i + 1] = hidden_layer[i];
+		}
+    	tmp[hidden_layer.length + 1] = 1;
+    	bp = new BP(tmp, mobp, rate);
+    }
 	/**
 	 * 数据顺序：导演（String）、国家（String）、上映时间（util.Date）、类型（String）、评分（double）、评分人数（double）、片长（double）、票房（double）
 	 * @param original_data
