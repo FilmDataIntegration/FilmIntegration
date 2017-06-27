@@ -1,0 +1,73 @@
+package BPNN;
+
+import java.io.Serializable;
+
+public class Processor implements Serializable{
+	private static final long serialVersionUID = 1L;
+
+	private PreProcessor processor;
+	
+    private BP bp = new BP(new int[]{7,6,2,1}, 0.15, 0.8);
+	/**
+	 * 数据顺序：导演（String）、国家（String）、上映时间（util.Date）、类型（String）、评分（double）、评分人数（double）、片长（double）、票房（double）
+	 * @param original_data
+	 */
+    public void train(Object[][] original_data){
+    	processor = new PreProcessor(original_data);
+    	System.out.println("完成数据预处理");
+        //初始化神经网络的基本配置
+        //第一个参数是一个整型数组，表示神经网络的层数和每层节点数，比如{3,10,10,10,10,2}表示输入层是3个节点，输出层是2个节点，中间有4层隐含层，每层10个节点
+        //第二个参数是学习步长，第三个参数是动量系数
+
+        //设置样本数据，对应上面的7维坐标数据
+        double[][] data = processor.convertData(original_data);
+        System.out.println("完成参数转换");
+        //设置目标数据，对应4个坐标数据的分类
+        double[][] target = new double[original_data.length][1];
+        for (int i = 0; i < target.length; i++) {
+        	target[i][0] = (double)original_data[i][7];
+		}
+
+        //迭代训练5000次
+        for(int n=0;n<5000;n++)
+            for(int i=0;i<data.length;i++)
+                bp.train(data[i], target[i]);
+
+        System.out.println("完成BPNN训练");
+        
+        try {
+			this.predict(data);
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    private double[] predict(double[][] data) throws IllegalAccessException{
+    	if(processor == null){
+    		throw new IllegalAccessException("需要先完成训练才可以预测");
+    	}
+    	double[] box = new double[data.length];
+    	System.out.println("开始检验网络有效性");
+        for(int j=0;j<data.length;j++){
+        	box[j] = bp.computeOut(data[j])[0];
+            System.out.println("检验票房为: " + box[j]);
+        }
+    	System.out.println("完成检验");
+        return box;
+    }
+    
+    public double[] predict(Object[][] original_data) throws IllegalAccessException{
+    	if(processor == null){
+    		throw new IllegalAccessException("需要先完成训练才可以预测");
+    	}
+    	double[] box = new double[original_data.length];
+    	System.out.println("开始预测数据");
+        double[][] data = processor.convertData(original_data);
+        for(int j=0;j<data.length;j++){
+        	box[j] = bp.computeOut(data[j])[0];
+            System.out.println("预测票房为: " + box[j]);
+        }
+    	System.out.println("完成预测");
+        return box;
+    }
+}
