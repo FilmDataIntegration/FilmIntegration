@@ -9,18 +9,24 @@ public class Processor implements Serializable{
 	
     private BP bp;
     
+    private int iterator_count;
+    
+    public final static int parameter_count = 5;
+    
     public Processor(){
-    	this(new int[]{6, 2}, 0.15, 0.8);
+    	this(new int[]{6, 2}, 0.15, 0.8, 5000);
     }
     
     /**
      * @param hidden_layer 神经网络中间层节点数，可以有多层
      * @param mobp 动量系数
      * @param rate 学习系数
+     * @param rate 迭代次数
      */
-    public Processor(int[] hidden_layer, double mobp, double rate){
+    public Processor(int[] hidden_layer, double mobp, double rate, int iterator_count){
+    	this.iterator_count = iterator_count;
     	int[] tmp = new int[hidden_layer.length + 2];
-    	tmp[0] = 7;
+    	tmp[0] = parameter_count;
     	for (int i = 0; i < hidden_layer.length; i++) {
 			tmp[i + 1] = hidden_layer[i];
 		}
@@ -28,7 +34,7 @@ public class Processor implements Serializable{
     	bp = new BP(tmp, mobp, rate);
     }
 	/**
-	 * 数据顺序：导演（String）、国家（String）、上映时间（util.Date）、类型（String）、评分（double）、评分人数（double）、片长（double）、票房（double）
+	 * 数据顺序：导演（String）、国家（String）、上映年份（int）、评分人数（double）、片长（double）、评分（double）
 	 * @param original_data
 	 */
     public void train(Object[][] original_data){
@@ -38,17 +44,17 @@ public class Processor implements Serializable{
         //第一个参数是一个整型数组，表示神经网络的层数和每层节点数，比如{3,10,10,10,10,2}表示输入层是3个节点，输出层是2个节点，中间有4层隐含层，每层10个节点
         //第二个参数是学习步长，第三个参数是动量系数
 
-        //设置样本数据，对应上面的7维坐标数据
+        //设置样本数据，对应上面的5维坐标数据
         double[][] data = processor.convertData(original_data);
         System.out.println("完成参数转换");
-        //设置目标数据，对应4个坐标数据的分类
+        //设置目标数据，对应1个坐标数据的分类
         double[][] target = new double[original_data.length][1];
         for (int i = 0; i < target.length; i++) {
-        	target[i][0] = (double)original_data[i][7];
+        	target[i][0] = (double)original_data[i][parameter_count];
 		}
 
         //迭代训练5000次
-        for(int n=0;n<5000;n++)
+        for(int n=0;n<iterator_count;n++)
             for(int i=0;i<data.length;i++)
                 bp.train(data[i], target[i]);
 
