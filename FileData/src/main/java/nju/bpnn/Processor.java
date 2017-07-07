@@ -1,4 +1,4 @@
-package BPNN;
+package nju.bpnn;
 
 import java.io.Serializable;
 
@@ -90,7 +90,7 @@ public class Processor implements Serializable{
         double[][] data = processor.convertData(original_data);
         for(int j=0;j<data.length;j++){
         	box[j] = bp.computeOut(data[j])[0];
-            System.out.println("预测票房为: " + box[j]);
+            System.out.println("预测评分为: " + box[j]);
         }
     	System.out.println("完成预测");
         return box;

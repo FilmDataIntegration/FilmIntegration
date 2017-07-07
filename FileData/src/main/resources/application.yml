@@ -1,10 +1,10 @@
 server:
-  port: 8080
+  port: 8020
 spring:
   profiles:
     active: dev
   datasource:
-    url: jdbc:mysql://cxworks.cn:3306/filmdata?useUnicode=true&characterEncoding=UTF-8
+    url: jdbc:mysql://115.159.106.212:3306/filmdata?useUnicode=true&characterEncoding=UTF-8
     username: root
     password:
   jpa:

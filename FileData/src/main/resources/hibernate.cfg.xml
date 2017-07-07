@@ -14,5 +14,6 @@
         <mapping class="nju.entity.PlatformsEntity"/>
         <mapping class="nju.entity.ShowInfosEntity"/>
         <mapping class="nju.entity.TheatresEntity"/>
+        <mapping class="nju.entity.MLFilm"/>
     </session-factory>
 </hibernate-configuration>
