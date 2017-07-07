@@ -52,7 +52,7 @@ public class PreProcessor implements Serializable{
 //			data[i][2] = dates[this.getDateIndex((Date)original_data[i][2])];
 //			data[i][3] = types.get((String)original_data[i][3]);
 //			data[i][4] = Math.log((double)original_data[i][4] - rates[0]) / rates[1];
-			data[i][3] = Math.log((double)original_data[i][3] - popularities[0]) / popularities[1];
+			data[i][3] = Math.log((int)original_data[i][3] - popularities[0]) / popularities[1];
 			data[i][4] = Math.log((double)original_data[i][4] - durations[0]) / durations[1];
 		}
 		
@@ -68,10 +68,12 @@ public class PreProcessor implements Serializable{
 			String column = (String)original_data[i][index];
 			if(films.containsKey(column)){
 				films.replace(column, films.get(column) + 1);
-				box.replace(column, box.get(column) + (Double)original_data[i][price_index]);
+				box.replace(column,
+                        box.get(column) +
+						(Double)original_data[i][price_index]);
 			}else{
 				films.put(column, 1);
-				box.replace(column, (Double)original_data[i][price_index]);
+				box.put(column, (Double)original_data[i][price_index]);
 			}
 		}
 		
@@ -129,8 +131,15 @@ public class PreProcessor implements Serializable{
 		double min = Double.MAX_VALUE;
 		double max = Double.MIN_VALUE;
 		for (int i = 0; i < original_data.length; i++) {
-			min = Math.min(min, (double)original_data[i][index]);
-			max = Math.max(max, (double)original_data[i][index]);
+		    Object obj=original_data[i][index];
+
+            double comp=0;
+            if (obj instanceof Integer)
+		        comp=(int)obj;
+            else
+                comp=(double)obj;
+			min = Math.min(min, comp);
+			max = Math.max(max, comp);
 		}
 		
 		cache[0] = min;
