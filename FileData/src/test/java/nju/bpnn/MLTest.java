@@ -15,7 +15,7 @@ import java.util.List;
  * Created by cxworks on 17-7-7.
  */
 public class MLTest extends FilmDataApplicationTests {
-
+    private int length = 1000;
     @Resource
     MLFilmRepository mlFilmRepository;
 
@@ -23,18 +23,18 @@ public class MLTest extends FilmDataApplicationTests {
     @Test
     public void testML(){
         List<MLFilm> list=mlFilmRepository.findAll();
-        Object[][] objss=new Object[list.size()][7];
-        for (int i=0;i<list.size();i++){
+        Object[][] objss=new Object[length][6];
+        for (int i=0;i<length;i++){
             objss[i]=list.get(i).toObjArr();
         }
         Processor processor=new Processor();
-        processor.train(objss);
+        processor.train(objss, 100000);
         try {
             double[] pre=processor.predict(objss);
             double sum=0;
 
             for (int i=0;i<pre.length;i++){
-                Object ob=objss[i][6];
+                Object ob=objss[i][5];
                 sum+=Math.pow((double)ob-pre[i],2);
             }
             System.out.println(sum);

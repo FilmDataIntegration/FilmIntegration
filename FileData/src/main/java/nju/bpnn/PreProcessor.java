@@ -12,48 +12,63 @@ public class PreProcessor implements Serializable{
 	private Map<String, Double> directors;
 	//各个国家权重
 	private Map<String, Double> countries;
-	
-//	private Map<String, Double> types;
-	//各个日期权重[为五一档(4 月 27 日至 5 月 10 日)、暑期档(7 月 1 日至 9 月 1 日)、国庆档(9 月 27 日至 10 月 10 日)、贺岁档(正月初一至正月十五)和其他档期共 5 类。]
-//	private double[] dates;
-	private int dates;
 
-//	private double[] rates;
+	private double dates;
 	
 	private double[] popularities;
 	
 	private double[] durations;
-	
-	private int price_index;
+
+	private double rates;
+
+	private int rates_index;
 	
 	/**
 	 * 数据顺序：导演、国家、上映年份、评分人数、片长、评分
 	 * @param original_data
 	 */
 	public PreProcessor(Object[][] original_data){
-		price_index = original_data[0].length - 1;
+		rates_index = original_data[0].length - 1;
 		
 		directors = this.processEnum(original_data, 0);
 		countries = this.processEnum(original_data, 1);
 		dates = this.processDate(original_data);
-//		types = this.processEnum(original_data, 3);
-//		rates = this.processNum(original_data, 3);
 		popularities = this.processNum(original_data, 3);
-		durations = this.processNum(original_data, 4);		
+		durations = this.processNum(original_data, 4);
+		rates = 10;
 	}
-	
+
+	public double[][] convertTarget(Object[][] original_data){
+		double[][] tmp = new double[original_data.length][1];
+		for (int i = 0; i < original_data.length; ++i){
+			tmp[i][0] = (double)original_data[i][rates_index] / rates;
+		}
+		return tmp;
+	}
+
+
 	public double[][] convertData(Object[][] original_data){
 		int m = original_data.length;
 		double[][] data = new double[m][Processor.parameter_count];
 		for (int i = 0; i < m; i++) {
-			data[i][0] = directors.get((String)original_data[i][0]);
-			data[i][1] = countries.get((String)original_data[i][1]);
-			data[i][2] = Math.log((int)original_data[i][2] - dates);
-//			data[i][2] = dates[this.getDateIndex((Date)original_data[i][2])];
-//			data[i][3] = types.get((String)original_data[i][3]);
-//			data[i][4] = Math.log((double)original_data[i][4] - rates[0]) / rates[1];
-			data[i][3] = Math.log((int)original_data[i][3] - popularities[0]) / popularities[1];
-			data[i][4] = Math.log((double)original_data[i][4] - durations[0]) / durations[1];
+			if(directors.containsKey((String)original_data[i][0])){
+				data[i][0] = directors.get((String)original_data[i][0]);
+			}else{
+				data[i][0] = 0.5;
+			}
+
+			if(countries.containsKey((String)original_data[i][1])){
+				data[i][1] = countries.get((String)original_data[i][1]);
+			}else{
+				data[i][1] = 0.5;
+			}
+
+			data[i][2] = Math.log((int)original_data[i][2] / dates);
+			data[i][3] = ((int)original_data[i][3] - popularities[0]) / popularities[1];
+			data[i][3] = data[i][3] < 0 ? 0 : data[i][3];
+			data[i][4] = ((double)original_data[i][4] - durations[0]) / durations[1];
+			data[i][4] = data[i][4] < 0 ? 0 : data[i][4];
+			System.out.println(data[i][0] + "; " + data[i][1] + "; " + data[i][2] + "; " + data[i][3] + "; " + data[i][4] + "; " + original_data[i][5]);
 		}
 		
 		return data;
@@ -65,15 +80,18 @@ public class PreProcessor implements Serializable{
 		Map<String, Double> box = new HashMap<String, Double>();
 		
 		for (int i = 0; i < original_data.length; i++) {
+			if((double)original_data[i][Processor.parameter_count] == 0){
+				continue;
+			}
 			String column = (String)original_data[i][index];
 			if(films.containsKey(column)){
 				films.replace(column, films.get(column) + 1);
 				box.replace(column,
                         box.get(column) +
-						(Double)original_data[i][price_index]);
+						(Double)original_data[i][rates_index]);
 			}else{
 				films.put(column, 1);
-				box.put(column, (Double)original_data[i][price_index]);
+				box.put(column, (Double)original_data[i][rates_index]);
 			}
 		}
 		
@@ -85,10 +103,10 @@ public class PreProcessor implements Serializable{
 			max = Math.max(max, bill);
 			box.replace(column, bill);
 		}
-		
-		double fenmu = Math.log(max - min);
+
+		double fenmu = Math.log(max / min);
 		for (String name : box.keySet()) {
-			cache.put(name, Math.log(box.get(name) - min) / fenmu);
+			cache.put(name, Math.log(box.get(name) / min) / fenmu);
 		}
 		return cache;
 	}
@@ -138,33 +156,20 @@ public class PreProcessor implements Serializable{
 		        comp=(int)obj;
             else
                 comp=(double)obj;
+            if(comp == 0){
+				continue;
+			}
 			min = Math.min(min, comp);
 			max = Math.max(max, comp);
 		}
-		
+
 		cache[0] = min;
-		cache[1] = Math.log(max - min);
+//		cache[1] = Math.log(max / min);
+		cache[1] = max - min;
 		return cache;
 	}
-	
-//	private int getDateIndex(Date date){
-//		int month = date.getMonth() + 1;
-//		int day = date.getDayOfMonth();
-//		if((month == 4 && day > 26) || (month == 5 && day < 7)){
-//			//端午节
-//			return 0;
-//		}else if(month == 7 || month == 8){
-//			//暑期档
-//			return 1;
-//		}else if((month == 9 && day > 26) || (month == 10 && day < 10)){
-//			//国庆档
-//			return 2;
-//		}else if(month == 1 || month == 2){
-//			//贺岁档
-//			return 2;
-//		}else{
-//			//其他
-//			return 4;
-//		}
-//	}
+
+	public double getRates(){
+		return rates;
+	}
 }

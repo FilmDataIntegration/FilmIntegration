@@ -1,98 +1,100 @@
 package nju.bpnn;
 
+import org.encog.Encog;
+import org.encog.engine.network.activation.ActivationSigmoid;
+import org.encog.ml.data.MLData;
+import org.encog.ml.data.MLDataPair;
+import org.encog.ml.data.MLDataSet;
+import org.encog.ml.data.basic.BasicMLData;
+import org.encog.ml.data.basic.BasicMLDataSet;
+import org.encog.neural.networks.BasicNetwork;
+import org.encog.neural.networks.layers.BasicLayer;
+import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
+
 import java.io.Serializable;
 
 public class Processor implements Serializable{
 	private static final long serialVersionUID = 1L;
 
+	private BasicNetwork network;
+
 	private PreProcessor processor;
-	
-    private BP bp;
-    
-    private int iterator_count;
-    
+
     public final static int parameter_count = 5;
-    
-    public Processor(){
-    	this(new int[]{6, 2}, 0.15, 0.8, 5000);
-    }
-    
-    /**
-     * @param hidden_layer 神经网络中间层节点数，可以有多层
-     * @param mobp 动量系数
-     * @param rate 学习系数
-     * @param rate 迭代次数
-     */
-    public Processor(int[] hidden_layer, double mobp, double rate, int iterator_count){
-    	this.iterator_count = iterator_count;
-    	int[] tmp = new int[hidden_layer.length + 2];
-    	tmp[0] = parameter_count;
-    	for (int i = 0; i < hidden_layer.length; i++) {
-			tmp[i + 1] = hidden_layer[i];
+
+	public Processor(){
+		this(new int[]{3});
+	}
+
+	public Processor(int[] hidden_layer) {
+
+		//create a neural network, without using a factory
+		network = new BasicNetwork();
+
+		//BasicLayer 参数： 激活函数、是否偏移、该层神经元数目
+		network.addLayer(new BasicLayer(null, true, parameter_count));
+		for (int i = 0; i < hidden_layer.length; ++i){
+			network.addLayer(new BasicLayer(new ActivationSigmoid(),true,hidden_layer[i]));
 		}
-    	tmp[hidden_layer.length + 1] = 1;
-    	bp = new BP(tmp, mobp, rate);
-    }
+		network.addLayer(new BasicLayer(new ActivationSigmoid(),false,1));
+		network.getStructure().finalizeStructure();
+
+		network.reset();
+	}
+
 	/**
 	 * 数据顺序：导演（String）、国家（String）、上映年份（int）、评分人数（double）、片长（double）、评分（double）
 	 * @param original_data
+	 * @param iterator_count 训练次数（测试网络时训练次数设置的为100000次）
 	 */
-    public void train(Object[][] original_data){
-    	processor = new PreProcessor(original_data);
-    	System.out.println("完成数据预处理");
-        //初始化神经网络的基本配置
-        //第一个参数是一个整型数组，表示神经网络的层数和每层节点数，比如{3,10,10,10,10,2}表示输入层是3个节点，输出层是2个节点，中间有4层隐含层，每层10个节点
-        //第二个参数是学习步长，第三个参数是动量系数
+	public void train(Object[][] original_data, int iterator_count){
+		processor = new PreProcessor(original_data);
+		System.out.println("完成数据预处理");
+		//初始化神经网络的基本配置
+		//第一个参数是一个整型数组，表示神经网络的层数和每层节点数，比如{3,10,10,10,10,2}表示输入层是3个节点，输出层是2个节点，中间有4层隐含层，每层10个节点
+		//第二个参数是学习步长，第三个参数是动量系数
 
-        //设置样本数据，对应上面的5维坐标数据
-        double[][] data = processor.convertData(original_data);
-        System.out.println("完成参数转换");
-        //设置目标数据，对应1个坐标数据的分类
-        double[][] target = new double[original_data.length][1];
-        for (int i = 0; i < target.length; i++) {
-        	target[i][0] = (double)original_data[i][parameter_count];
+		//设置样本数据，对应上面的5维坐标数据
+		double[][] data = processor.convertData(original_data);
+		System.out.println("完成参数转换");
+		//设置目标数据，对应1个坐标数据的分类
+		double[][] target = processor.convertTarget(original_data);
+
+		MLDataSet trainingSet = new BasicMLDataSet(data, target);
+
+		//训练网络
+		final ResilientPropagation train = new ResilientPropagation(network, trainingSet);
+
+		for (int i = 0; i < iterator_count; i++){
+			train.iteration();
+			System.out.println("Epoch #" + i + " Error: " + train.getError());
 		}
 
-        //迭代训练5000次
-        for(int n=0;n<iterator_count;n++)
-            for(int i=0;i<data.length;i++)
-                bp.train(data[i], target[i]);
+		train.finishTraining();
 
-        System.out.println("完成BPNN训练");
-        
-        try {
-			this.predict(data);
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+		//用训练数据检测网络
+		System.out.println("Neural Network Results: ");
+		for(MLDataPair pair: trainingSet){
+			final MLData output = network.compute(pair.getInput());
+			System.out.println(	"actual=" + output.getData(0) + ", ideal=" +
+					pair.getIdeal().getData(0));
 		}
-    }
-    
-    private double[] predict(double[][] data) throws IllegalAccessException{
-    	if(processor == null){
-    		throw new IllegalAccessException("需要先完成训练才可以预测");
-    	}
-    	double[] box = new double[data.length];
-    	System.out.println("开始检验网络有效性");
-        for(int j=0;j<data.length;j++){
-        	box[j] = bp.computeOut(data[j])[0];
-            System.out.println("检验票房为: " + box[j]);
-        }
-    	System.out.println("完成检验");
-        return box;
-    }
-    
-    public double[] predict(Object[][] original_data) throws IllegalAccessException{
-    	if(processor == null){
-    		throw new IllegalAccessException("需要先完成训练才可以预测");
-    	}
-    	double[] box = new double[original_data.length];
-    	System.out.println("开始预测数据");
-        double[][] data = processor.convertData(original_data);
-        for(int j=0;j<data.length;j++){
-        	box[j] = bp.computeOut(data[j])[0];
-            System.out.println("预测评分为: " + box[j]);
-        }
-    	System.out.println("完成预测");
-        return box;
-    }
+		Encog.getInstance().shutdown();
+	}
+
+	public double[] predict(Object[][] original_data) throws IllegalAccessException{
+		if(processor == null){
+			throw new IllegalAccessException("需要先完成训练才可以预测");
+		}
+		double[] box = new double[original_data.length];
+		System.out.println("开始预测数据");
+		double[][] data = processor.convertData(original_data);
+		for(int j=0;j<data.length;j++){
+			MLData output = network.compute(new BasicMLData(data[j]));
+			box[j] = output.getData(0) * processor.getRates();
+			System.out.println("预测评分为: " + box[j] + "; 实际评分为: " + original_data[j][parameter_count]);
+		}
+		System.out.println("完成预测");
+		return box;
+	}
 }
