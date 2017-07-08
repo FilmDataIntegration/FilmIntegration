@@ -92,7 +92,7 @@ public class Processor implements Serializable{
 		for(int j=0;j<data.length;j++){
 			MLData output = network.compute(new BasicMLData(data[j]));
 			box[j] = output.getData(0) * processor.getRates();
-			System.out.println("预测评分为: " + box[j] + "; 实际评分为: " + original_data[j][parameter_count]);
+			System.out.println("预测评分为: " + box[j]);
 		}
 		System.out.println("完成预测");
 		return box;
