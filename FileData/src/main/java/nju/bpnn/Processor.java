@@ -67,7 +67,7 @@ public class Processor implements Serializable{
 
 		for (int i = 0; i < iterator_count; i++){
 			train.iteration();
-			System.out.println("Epoch #" + i + " Error: " + train.getError());
+//			System.out.println("Epoch #" + i + " Error: " + train.getError());
 		}
 
 		train.finishTraining();

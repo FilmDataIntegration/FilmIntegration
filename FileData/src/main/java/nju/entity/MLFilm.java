@@ -12,6 +12,7 @@ import java.util.List;
 @Entity
 @Table(name = "douban")
 @Data
+
 public class MLFilm {
 
 
@@ -39,6 +40,10 @@ public class MLFilm {
     @Basic
             @Column(name = "runtime")
     int runtime;
+
+
+    @Transient
+    double pre;
 
 
     public Object[] toObjArr(){
